@@ -8,6 +8,9 @@ OBJ = main.o fatal.o mem.o wasp_buf.o str.o ${ARCH}.o
 wasp: ${OBJ}
 	${CC} -o $@ ${OBJ}
 
+test: wasp
+	echo 'mov %eax, %ebx' | ./wasp
+
 main.o: main.c
 	${CC} ${CFLAGS} -c -o $@ $< ${ARCH_DEF}
 
