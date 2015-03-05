@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <ctype.h>
 
 #include "fatal.h"
@@ -11,7 +12,7 @@
 enum wasp_cc
 {
 	CC_E = 0,
-	CC_Z = 0x4,
+	CC_Z = 0x4
 };
 
 typedef struct
@@ -25,7 +26,7 @@ typedef struct
 		ESP = 0x4,
 		EBP = 0x5,
 		ESI = 0x6,
-		EDI = 0x7,
+		EDI = 0x7
 	} idx;
 	int size, high;
 } reg;
@@ -69,7 +70,7 @@ struct x86_isn
 
 		isn_setcc,
 
-		isn_op,
+		isn_op
 	} type;
 
 	struct x86_operand operands[2];
@@ -144,7 +145,7 @@ static void parse_reg(char **const pstr, reg *const out)
 		IREG("s", ESI),
 		IREG("d", EDI),
 
-		{ 0 }
+		{ { 0 } }
 
 		/* r[8 - 15] -> r8b, r8w, r8d, r8 */
 	};

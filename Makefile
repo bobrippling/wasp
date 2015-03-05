@@ -1,4 +1,4 @@
-CFLAGS = -g
+CFLAGS = -g -Wall -Wextra -pedantic -std=c89
 
 ARCH = x86_64
 ARCH_DEF = -DWASP_ARCH_FNAME=\"${ARCH}.h\"
