@@ -1,2 +1,3 @@
 *.o
 wasp
+Makefile.cfg

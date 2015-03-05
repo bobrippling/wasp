@@ -1,4 +1,6 @@
-CFLAGS = -g -Wall -Wextra -pedantic -std=c89
+include Makefile.cfg
+
+CFLAGS = -g -Wall -Wextra -pedantic -std=c89 ${CFLAGS_CONFIGURE}
 
 ARCH = x86_64
 ARCH_DEF = -DWASP_ARCH_FNAME=\"${ARCH}.h\"
