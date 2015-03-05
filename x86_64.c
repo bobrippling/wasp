@@ -14,16 +14,20 @@ enum wasp_cc
 	CC_Z = 0x4,
 };
 
-typedef enum
+typedef struct
 {
-	EAX = 0x0,
-	ECX = 0x1,
-	EDX = 0x2,
-	EBX = 0x3,
-	ESP = 0x4,
-	EBP = 0x5,
-	ESI = 0x6,
-	EDI = 0x7,
+	enum reg_idx
+	{
+		EAX = 0x0,
+		ECX = 0x1,
+		EDX = 0x2,
+		EBX = 0x3,
+		ESP = 0x4,
+		EBP = 0x5,
+		ESI = 0x6,
+		EDI = 0x7,
+	} idx;
+	int size, high;
 } reg;
 
 struct x86_operand
@@ -101,18 +105,73 @@ static long parse_num(char **const str)
 	return strtol(*str, str, 0);
 }
 
-static reg parse_reg(const char *str)
+static void parse_reg(char **const pstr, reg *const out)
 {
+	static const struct
+	{
+		const char name[4];
+		enum reg_idx idx;
+		int size;
+		int is_high;
+	} regs[] = {
+
+#define GREG(ch, i, post) \
+		{ "r"ch post, i, 8 },   \
+		{ "e"ch post, i, 4 },   \
+		{  ""ch post, i, 2 }
+
+#define QREG(ch, i)       \
+		GREG(ch, i, "x"),     \
+		{  ""ch"l", i, 1 },   \
+		{  ""ch"h", i, 1, 1 }
+
+#define IREG(ch, i)   \
+		GREG(ch, i, "i"), \
+		{ ch "il", i, 1 }
+
+#define SREG(ch, i)   \
+		GREG(ch, i, "p"), \
+		{ ch "pl", i, 1 }
+
+		QREG("a", EAX),
+		QREG("b", EBX),
+		QREG("c", ECX),
+		QREG("d", EDX),
+
+		SREG("s", ESP),
+		SREG("b", EBP),
+
+		IREG("s", ESI),
+		IREG("d", EDI),
+
+		{ 0 }
+
+		/* r[8 - 15] -> r8b, r8w, r8d, r8 */
+	};
+
+	char *str = *pstr;
 	char *end, save;
+	int i;
 
 	for(end = str; isalnum(*end); end++);
 
 	save = *end;
 	*end = '\0';
 
-	/* need to handle %al, %ah, %ax, %eax, %rax */
-	if(!TODO)
-		;
+	for(i = 0; regs[i].name[0]; i++){
+		if(!strcmp(regs[i].name, str)){
+			out->idx = regs[i].idx;
+			out->size = regs[i].size;
+			out->high = regs[i].is_high;
+			break;
+		}
+	}
+
+	if(!regs[i].name[0])
+		fatal("unknown register \"%s\"", str);
+
+	*end = save;
+	*pstr = end;
 }
 
 static void parse_operand(char **const str, struct x86_operand *const op)
@@ -130,7 +189,7 @@ number:
 				op->type = operand_memreg;
 				op->u.memreg.offset = op->u.memaddr;
 				++*str;
-				op->u.memreg.reg = parse_reg(str);
+				parse_reg(str, &op->u.memreg.reg);
 				if(**str != ')')
 					fatal("')' expected in '%s'", *str);
 			}
@@ -150,7 +209,7 @@ number:
 		case '%':
 			op->type = operand_reg;
 			++*str;
-			op->u.reg = parse_reg(str);
+			parse_reg(str, &op->u.reg);
 			break;
 	}
 }
